@@ -9,15 +9,29 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
+const terminal = new readline.Readline(process.stdout);
 
-client.on('connect', async () => {
-  console.log('Connection established with server');
+async function ask(){
   const message = await rl.question('message> ');
-  client.write(message);
-});
+  
+  terminal.moveCursor(0, -1).clearLine(0)
+  await terminal.commit();
 
-client.on('data', (data) => {
-  console.log(data.toString('utf-8'));
+  client.write(message);
+}
+
+client.on('data', async (data) => {
+  if(data.toString('utf-8').startsWith('Welcome to the chat! Your client ID is')){
+    console.log(data.toString('utf-8'));
+  }
+  else{
+    // this is a bit confusing, why not just clear the current line 
+    console.log();
+    await terminal.moveCursor(0, -1).clearLine(0).commit();
+    console.log(data.toString('utf-8'));
+  }
+  // ask for the next message after the current one is received
+  await ask();
 });
 
 //--------------------
